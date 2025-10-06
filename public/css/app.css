@@ -1,0 +1,213 @@
+body {
+    background: #f8f9fa;
+    font-family: "Poppins", sans-serif;
+    color: #333;
+}
+
+/* Navbar */
+.navbar {
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.navbar.bg-transparent .nav-link,
+.navbar.bg-transparent .navbar-brand {
+    color: #0f2027 !important;
+}
+
+.navbar.bg-colored {
+    background: rgba(30, 60, 114, 0.95); /* biru gelap semi transparan */
+    backdrop-filter: blur(8px);
+}
+
+.navbar.bg-transparent .navbar-brand {
+    color: #1e3c72 !important;
+}
+
+/* Hero Section */
+.hero {
+    height: 100vh;
+    background: linear-gradient(to bottom right, #1e3c72, #2a5298);
+    background-image: url("/images/hero-bg.jpg"); /* gambar pegunungan */
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+.hero::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 150px;
+    background-size: cover;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: #2a5298;
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #1e3c72;
+}
+
+.btn-outline-light:hover {
+    background-color: #fff;
+    color: #2a5298;
+}
+
+/* Transparent card */
+.auth-card {
+    width: 100%;
+    max-width: 380px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 15px;
+    backdrop-filter: blur(12px);
+    color: #fff;
+    transition: all 0.5s ease;
+}
+
+/* Input field */
+.auth-card .form-control {
+    background: transparent;
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.auth-card .form-control::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Input group */
+.input-group-text {
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Gradient button */
+.btn-gradient {
+    background: linear-gradient(to right, #6a11cb, #2575fc);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-gradient:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+
+/* DARK MODE AUTOMATIC STYLE  */
+@media (prefers-color-scheme: dark) {
+    .auth-wrapper {
+        background: linear-gradient(to top, #0f2027, #203a43, #2c5364);
+    }
+
+    .auth-card {
+        background: rgba(20, 20, 20, 0.6);
+        color: #f5f5f5;
+    }
+
+    .auth-card .form-control {
+        color: #f5f5f5;
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .auth-card .form-control::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    .input-group-text {
+        color: #ddd;
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-gradient {
+        background: linear-gradient(to right, #ff6a00, #ee0979);
+    }
+}
+
+.alert {
+    border-radius: 10px;
+    font-size: 0.9rem;
+    padding: 12px 15px;
+    backdrop-filter: blur(6px);
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: #fff;
+}
+
+.alert-success {
+    background: rgba(40, 167, 69, 0.8);
+}
+
+.alert-danger {
+    background: rgba(220, 53, 69, 0.8);
+}
+
+.alert i {
+    margin-right: 6px;
+}
+
+/* ==== Layout CRUD ==== */
+.crud-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 100px;
+    min-height: 100vh;
+}
+
+/* ==== Card Transparan Glassmorphism ==== */
+.card.crud-card {
+    background: rgba(255, 255, 255, 0.2); /* transparan */
+    backdrop-filter: blur(12px); /* efek blur kaca */
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+}
+
+/* === Styling Tabel === */
+.table {
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: rgba(240, 248, 255, 0.6); /* biru muda transparan */
+    backdrop-filter: blur(6px);
+}
+
+.table thead {
+    background: rgba(0, 123, 255, 0.15); /* biru lembut untuk header */
+}
+
+.table th,
+.table td {
+    vertical-align: middle;
+    padding: 12px;
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+.table-hover tbody tr:hover {
+    background: rgba(0, 123, 255, 0.08); /* highlight saat hover */
+}
+
+.modal-content {
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(6px);
+}
+
+.modal-header {
+    background: linear-gradient(90deg, #0d6efd, #0dcaf0);
+    color: white;
+}
+
+.modal-body {
+    color: #0f2027;
+}
