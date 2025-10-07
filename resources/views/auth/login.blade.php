@@ -7,19 +7,20 @@
       <h4 class="text-center mb-4 fw-bold">Login</h4>
 
       @if (session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-          <i class="bi bi-check-circle-fill"></i> {{ session('success') }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
+        <script>
+          document.addEventListener("DOMContentLoaded", function() {
+            showToast("✅ {{ session('success') }}", "success");
+          });
+        </script>
       @endif
-      
+
       @if (session('error'))
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div class="alert alert-danger alert-dismissible fade show mx-auto text-center shadow" role="alert" style="max-width: 400px; border-radius: 10px;">
           <i class="bi bi-exclamation-triangle-fill"></i> {{ session('error') }}
           <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
       @endif
-    
+
       <form method="POST" action="{{ route('login') }}">
         @csrf
         <!-- Email -->
@@ -27,7 +28,9 @@
           <span class="input-group-text bg-transparent border-end-0">
             <i class="bi bi-envelope"></i>
           </span>
-          <input type="email" name="email" class="form-control border-start-0" placeholder="Email" required>
+          <input type="email" name="email"
+                class="form-control border-start-0 @error('email') is-invalid @enderror"
+                value="{{ old('email') }}" placeholder="Email" required>
         </div>
 
         <!-- Password -->
@@ -35,8 +38,13 @@
           <span class="input-group-text bg-transparent border-end-0">
             <i class="bi bi-lock"></i>
           </span>
-          <input type="password" name="password" class="form-control border-start-0" placeholder="Password" required>
+          <input type="password" name="password"
+                class="form-control border-start-0 @error('password') is-invalid @enderror"
+                placeholder="Password" required>
         </div>
+        @error('password')
+          <div class="text-danger small mb-2">{{ $message }}</div>
+        @enderror
 
         <!-- Button -->
         <div class="d-grid">

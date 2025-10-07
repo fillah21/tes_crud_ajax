@@ -5,34 +5,74 @@ body {
 }
 
 /* Navbar */
+/* --- Navbar Dinamis --- */
 .navbar {
-    transition: background 0.3s ease, box-shadow 0.3s ease;
+  transition: all 0.4s ease;
+  background-color: transparent !important;
 }
 
-.navbar.bg-transparent .nav-link,
-.navbar.bg-transparent .navbar-brand {
-    color: #0f2027 !important;
+/* Warna teks awal (belum scroll) */
+.navbar .navbar-brand,
+.navbar .btn-outline-danger,
+.navbar .btn-outline-dark,
+.navbar .btn-light,
+.navbar span {
+  color: #1e3c72 !important; 
+  border-color: #1e3c72 !important;
+  transition: all 0.4s ease;
+}
+.navbar .btn-outline-dark:hover {
+    color: #fff !important;
+}
+.navbar .name:hover {
+    color: #16449a !important;
+}
+.navbar .btn-outline-danger {
+  border-color: #ff4b5c !important;
+  color: #1e3c72 !important;
+}
+.navbar .btn-outline-danger:hover {
+  color: #fff !important;
 }
 
-.navbar.bg-colored {
-    background: rgba(30, 60, 114, 0.95); /* biru gelap semi transparan */
-    backdrop-filter: blur(8px);
+/* Saat sudah di-scroll */
+.navbar.scrolled {
+  background-color: rgba(30, 60, 114, 0.95) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
-
-.navbar.bg-transparent .navbar-brand {
-    color: #1e3c72 !important;
+.navbar.scrolled .navbar-brand,
+.navbar.scrolled .btn-outline-dark,
+.navbar.scrolled .btn-light,
+.navbar.scrolled span {
+  color: #fff !important;
+  border-color: #fff !important;
+}
+.navbar.scrolled .btn-outline-dark:hover {
+  background-color: #fff !important;
+  color: #1e3c72 !important;
+}
+.navbar.scrolled .btn-outline-danger {
+  border-color: #ffb3b3 !important;
+  color: #fff !important;
+}
+.navbar.scrolled .btn-outline-danger:hover {
+  background-color: #ff4b5c !important;
+  color: #fff !important;
+}
+.navbar.scrolled .btn-light {
+  background-color: #fff !important;
+  color: #1e3c72 !important;
 }
 
 /* Hero Section */
 .hero {
-    height: 100vh;
+    min-height: 100vh;
     background: linear-gradient(to bottom right, #1e3c72, #2a5298);
     background-image: url("/images/hero-bg.jpg"); /* gambar pegunungan */
     background-size: cover;
     background-position: center;
     position: relative;
 }
-
 .hero::after {
     content: "";
     position: absolute;
@@ -48,11 +88,9 @@ body {
     background-color: #2a5298;
     border: none;
 }
-
 .btn-primary:hover {
     background-color: #1e3c72;
 }
-
 .btn-outline-light:hover {
     background-color: #fff;
     color: #2a5298;
@@ -66,24 +104,23 @@ body {
     border: none;
     border-radius: 15px;
     backdrop-filter: blur(12px);
-    color: #fff;
+    color: #1e3c72;
     transition: all 0.5s ease;
 }
 
 /* Input field */
 .auth-card .form-control {
     background: transparent;
-    color: #fff;
+    color: #1e3c72;
     border-color: rgba(255, 255, 255, 0.3);
 }
-
 .auth-card .form-control::placeholder {
-    color: rgba(255, 255, 255, 0.7);
+    color: #1e3b72ce;
 }
 
 /* Input group */
 .input-group-text {
-    color: #fff;
+    color: #1e3c72;
     border-color: rgba(255, 255, 255, 0.3);
 }
 
@@ -95,13 +132,13 @@ body {
     border-radius: 8px;
     transition: all 0.3s ease;
 }
-
 .btn-gradient:hover {
     opacity: 0.9;
+    color: #b1b1b1;
     transform: translateY(-2px);
 }
 
-/* DARK MODE AUTOMATIC STYLE  */
+/* Mode Gelap Otomatis  */
 @media (prefers-color-scheme: dark) {
     .auth-wrapper {
         background: linear-gradient(to top, #0f2027, #203a43, #2c5364);
@@ -131,6 +168,7 @@ body {
     }
 }
 
+/* Aturan Alert */
 .alert {
     border-radius: 10px;
     font-size: 0.9rem;
@@ -140,20 +178,30 @@ body {
     border: none;
     color: #fff;
 }
-
 .alert-success {
     background: rgba(40, 167, 69, 0.8);
 }
-
 .alert-danger {
     background: rgba(220, 53, 69, 0.8);
 }
-
 .alert i {
     margin-right: 6px;
 }
+.alert {
+  animation: fadeInDown 0.5s ease;
+}
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-/* ==== Layout CRUD ==== */
+/* Layout CRUD */
 .crud-wrapper {
     display: flex;
     justify-content: center;
@@ -162,7 +210,7 @@ body {
     min-height: 100vh;
 }
 
-/* ==== Card Transparan Glassmorphism ==== */
+/* Card Transparan Glassmorphism */
 .card.crud-card {
     background: rgba(255, 255, 255, 0.2); /* transparan */
     backdrop-filter: blur(12px); /* efek blur kaca */
@@ -173,7 +221,7 @@ body {
     padding: 20px;
 }
 
-/* === Styling Tabel === */
+/* Styling Tabel */
 .table {
     border-collapse: separate;
     border-spacing: 0;
@@ -182,32 +230,62 @@ body {
     background: rgba(240, 248, 255, 0.6); /* biru muda transparan */
     backdrop-filter: blur(6px);
 }
-
 .table thead {
     background: rgba(0, 123, 255, 0.15); /* biru lembut untuk header */
 }
-
 .table th,
 .table td {
     vertical-align: middle;
     padding: 12px;
     border-color: rgba(0, 0, 0, 0.1);
 }
-
 .table-hover tbody tr:hover {
     background: rgba(0, 123, 255, 0.08); /* highlight saat hover */
 }
 
+/* Modal Style */
 .modal-content {
     background: rgba(255, 255, 255, 0.9) !important;
     backdrop-filter: blur(6px);
 }
-
 .modal-header {
     background: linear-gradient(90deg, #0d6efd, #0dcaf0);
     color: white;
 }
-
 .modal-body {
     color: #0f2027;
+}
+.modal-backdrop {
+    z-index: 1040 !important;
+}
+.modal {
+    z-index: 1050 !important;
+}
+
+/* Style Konfirmasi Hapus Data */
+.confirm-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 1055;
+  justify-content: center;
+  align-items: center;
+}
+.confirm-box {
+  background: #fff;
+  color: black;
+  padding: 20px 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  min-width: 320px;
+  text-align: center;
+  animation: scaleIn 0.25s ease;
+}
+@keyframes scaleIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.confirm-overlay.show {
+  display: flex;
 }

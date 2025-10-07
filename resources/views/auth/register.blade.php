@@ -18,17 +18,21 @@
           <i class="bi bi-exclamation-triangle-fill"></i> {{ session('error') }}
           <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-      @endif
-
-
-      <form method="POST" action="{{ route('register') }}">
+        @endif
+        
+        
+      <form method="POST" action="{{ route('register.post') }}">
         @csrf
+        <input type="hidden" name="_debug" value="true">
+
         <!-- Name -->
-        <div class="mb-3 input-group">
-          <span class="input-group-text bg-transparent border-end-0">
-            <i class="bi bi-person"></i>
-          </span>
-          <input type="text" name="name" class="form-control border-start-0" placeholder="Name" required>
+        <div class="mb-3">
+          <div class="input-group">
+            <span class="input-group-text bg-transparent border-end-0">
+              <i class="bi bi-person"></i>
+            </span>
+            <input type="text" name="name" value="{{ old('name') }}" class="form-control border-start-0 @error('name') is-invalid @enderror" placeholder="Name" required>
+          </div>
         </div>
 
         <!-- Email -->
@@ -40,19 +44,23 @@
         </div>
 
         <!-- Password -->
-        <div class="mb-3 input-group">
-          <span class="input-group-text bg-transparent border-end-0">
-            <i class="bi bi-lock"></i>
-          </span>
-          <input type="password" name="password" class="form-control border-start-0" placeholder="Password" required>
+        <div class="mb-3">
+          <div class="input-group">
+            <span class="input-group-text bg-transparent border-end-0">
+              <i class="bi bi-lock"></i>
+            </span>
+            <input type="password" name="password" id="password" class="form-control border-start-0 @error('password') is-invalid @enderror" placeholder="Password" required>
+          </div>
         </div>
 
         <!-- Confirm Password -->
-        <div class="mb-3 input-group">
-          <span class="input-group-text bg-transparent border-end-0">
-            <i class="bi bi-lock-fill"></i>
-          </span>
-          <input type="password" name="password_confirmation" class="form-control border-start-0" placeholder="Confirm Password" required>
+        <div class="mb-3">
+          <div class="input-group">
+            <span class="input-group-text bg-transparent border-end-0">
+              <i class="bi bi-lock-fill"></i>
+            </span>
+            <input type="password" name="password_confirmation" id="password_confirmation" class="form-control border-start-0" placeholder="Konfirmasi Password" required>
+          </div>
         </div>
 
         <!-- Button -->

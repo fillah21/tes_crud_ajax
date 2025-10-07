@@ -1,499 +1,267 @@
 $(document).ready(function () {
-    console.log("CRUD.js loaded, jQuery ready!");
+    const modal = new bootstrap.Modal(document.getElementById('modalForm'));
+    const form = $("#formPerson");
+    const API_BASE = "https://www.emsifa.com/api-wilayah-indonesia/api";
 
-    $("#modalForm").on("show.bs.modal", function () {
-        $.get(
-            "https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json",
-            function (data) {
-                $("#provinsi").html(
-                    '<option value="">-- Pilih Provinsi --</option>'
-                );
-                $.each(data, function (i, val) {
-                    $("#provinsi").append(
-                        '<option value="' +
-                            val.name +
-                            '" data-id="' +
-                            val.id +
-                            '">' +
-                            val.name +
-                            "</option>"
-                    );
+   // Load Provinsi 
+    function loadProvinsi(selected = "", callback = null) {
+        $.get(`${API_BASE}/provinces.json`, function (res) {
+            let options = `<option value="">-- Pilih Provinsi --</option>`;
+            res.forEach(p => {
+                options += `<option value="${p.name}" data-id="${p.id}" ${p.name === selected ? "selected" : ""}>${p.name}</option>`;
+            });
+            $("#provinsi").html(options);
+            if (callback) callback();
+        });
+    }
+
+    // Load Kabupaten
+    function loadKabupaten(provinsiName = "", selectedKab = "", callback = null) {
+        let provId = $("#provinsi option:selected").data("id");
+        if (!provId && provinsiName) {
+            const opt = $(`#provinsi option[value="${provinsiName}"]`);
+            provId = opt.data("id");
+        }
+        if (!provId) {
+            $("#kabupaten").html('<option value="">-- Pilih Kabupaten --</option>');
+            $("#desa").html('<option value="">-- Pilih Desa --</option>');
+            return;
+        }
+
+        $.get(`${API_BASE}/regencies/${provId}.json`, function (res) {
+            let options = `<option value="">-- Pilih Kabupaten --</option>`;
+            res.forEach(k => {
+                options += `<option value="${k.name}" data-id="${k.id}" ${k.name === selectedKab ? "selected" : ""}>${k.name}</option>`;
+            });
+            $("#kabupaten").html(options);
+            if (callback) callback();
+        });
+    }
+
+    // Load Desa Berdasarkan Kabupaten
+    function loadDesa(kabupatenName = "", selectedDesa = "") {
+        let kabId = $("#kabupaten option:selected").data("id");
+        if (!kabId && kabupatenName) {
+            const opt = $(`#kabupaten option[value="${kabupatenName}"]`);
+            kabId = opt.data("id");
+        }
+
+        if (!kabId) {
+            $("#desa").html('<option value="">-- Pilih Desa --</option>');
+            return;
+        }
+
+        $.get(`${API_BASE}/districts/${kabId}.json`, function (kecamatanList) {
+            let desaOptions = `<option value="">-- Pilih Desa --</option>`;
+            let totalRequests = kecamatanList.length;
+            let completed = 0;
+
+            kecamatanList.forEach(kec => {
+                $.get(`${API_BASE}/villages/${kec.id}.json`, function (desaList) {
+                    desaList.forEach(d => {
+                        desaOptions += `<option value="${d.name}" ${d.name === selectedDesa ? "selected" : ""}>${d.name}</option>`;
+                    });
+                }).always(() => {
+                    completed++;
+                    if (completed === totalRequests) {
+                        $("#desa").html(desaOptions);
+                    }
                 });
-            }
-        );
+            });
+        });
+    }
+
+    // Event Dropdown 
+    $("#provinsi").on("change", function () {
+        loadKabupaten();
+    });
+    $("#kabupaten").on("change", function () {
+        loadDesa();
     });
 
-    // =========================
-    // LOAD DATA TABLE
-    // =========================
+    // Load Data Tabel 
     function loadData() {
-        $.get("/people", function (res) {
-            let rows = "";
-            res.forEach(function (item) {
-                rows += `
-                  <tr>
-                    <td>${item.nama}</td>
-                    <td>${item.tgl_lahir ?? "-"}</td>
-                    <td>${item.agama ?? "-"}</td>
-                    <td>${item.provinsi ?? "-"}</td>
-                    <td>${item.kabupaten ?? "-"}</td>
-                    <td>${item.desa ?? "-"}</td>
-                    <td>${item.hobi ?? "-"}</td>
-                    <td>${item.status ?? "-"}</td>
-                    <td>${
-                        item.image
-                            ? `<img src="/storage/${item.image}" width="50">`
-                            : "-"
-                    }</td>
-                    <td>${
-                        item.files
-                            ? JSON.parse(item.files)
-                                  .map(
-                                      (f) =>
-                                          `<a href="/storage/${f}" target="_blank">File</a>`
-                                  )
-                                  .join(", ")
-                            : "-"
-                    }</td>
+        $.get("/person", function (res) {
+            let html = "";
+            res.data.forEach(p => {
+                html += `
+                <tr>
+                    <td>${p.nama}</td>
+                    <td>${p.tgl_lahir || "-"}</td>
+                    <td>${p.agama || "-"}</td>
+                    <td>${p.provinsi || "-"}</td>
+                    <td>${p.kabupaten || "-"}</td>
+                    <td>${p.desa || "-"}</td>
+                    <td>${p.hobi || "-"}</td>
+                    <td>${p.status || "-"}</td>
+                    <td>${p.image ? `<img src="/storage/${p.image}" width="50">` : "-"}</td>
+                    <td>${p.files ? JSON.parse(p.files).map(f => `<a href="/storage/${f}" target="_blank">File</a>`).join(", ") : "-"}</td>
                     <td>
-                        <button class="btn btn-sm btn-outline-primary btn-edit me-1" data-id="${
-                            item.id
-                        }" title="Edit">
-                            <i class="bi bi-pencil-square"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger btn-delete" data-id="${
-                            item.id
-                        }" title="Delete">
-                            <i class="bi bi-trash"></i>
-                        </button>
+                        <button class="btn btn-warning btn-sm editBtn" data-id="${p.id}">Edit</button>
+                        <button class="btn btn-danger btn-sm deleteBtn" data-id="${p.id}">Hapus</button>
                     </td>
-                  </tr>
-                `;
+                </tr>`;
             });
-            $("#peopleTable tbody").html(rows);
+            $("#peopleTable tbody").html(html);
         });
     }
     loadData();
 
-    // Validasi form tambah/edit
-    $(document).on("submit", "#formData, #formEdit", function (e) {
-        let nama = $(this).find("input[name='nama']").val();
-        let image = $(this).find("input[name='image']")[0].files[0];
-
-        // Validasi nama
-        if (nama.length > 50) {
-            e.preventDefault();
-            alert("Nama maksimal 50 karakter!");
-            return false;
-        }
-
-        // Validasi image
-        if (image && image.size > 1 * 1024 * 1024) {
-            // 2 MB
-            e.preventDefault();
-            alert("Ukuran image maksimal 1MB!");
-            return false;
-        }
-    });
-
-    // =========================
-    // CREATE DATA
-    // =========================
-    $("#formData").submit(function (e) {
-        e.preventDefault();
-        let formData = new FormData(this);
-
-        $.ajax({
-            url: "/people",
-            type: "POST",
-            data: formData,
-            contentType: false,
-            processData: false,
-            success: function () {
-                $("#modalForm").modal("hide");
-                $("#formData")[0].reset();
-                loadData();
-                showAlert("Data berhasil ditambahkan!", "success");
-            },
-            error: function (err) {
-                console.log(err.responseJSON);
-                showAlert("Gagal menyimpan data!", "danger");
-            },
-        });
-    });
-
-    // =========================
-    // LOAD PROVINSI SAAT MODAL TAMBAH
-    // =========================
-    $("#modalForm").on("show.bs.modal", function () {
-        $.get("/api/provinces", function (data) {
-            $("#provinsi").html(
-                '<option value="">-- Pilih Provinsi --</option>'
-            );
-            $.each(data, function (i, val) {
-                $("#provinsi").append(
-                    '<option value="' +
-                        val.name +
-                        '" data-id="' +
-                        val.id +
-                        '">' +
-                        val.name +
-                        "</option>"
-                );
-            });
-        });
-    });
-
-    $("#provinsi").on("change", function () {
-        let provId = $(this).find(":selected").data("id");
+    // Tambah Data
+    $("#btnTambah").on("click", function () {
+        form[0].reset();
+        $("#person_id").val("");
+        $("#modalTitle").text("Tambah Data");
+        loadProvinsi();
         $("#kabupaten").html('<option value="">-- Pilih Kabupaten --</option>');
         $("#desa").html('<option value="">-- Pilih Desa --</option>');
-        if (provId) {
-            $.get("/api/regencies/" + provId, function (data) {
-                $.each(data, function (i, val) {
-                    $("#kabupaten").append(
-                        '<option value="' +
-                            val.name +
-                            '" data-id="' +
-                            val.id +
-                            '">' +
-                            val.name +
-                            "</option>"
-                    );
-                });
-            });
-        }
+        modal.show();
     });
 
-    $("#kabupaten").on("change", function () {
-        let kabId = $(this).find(":selected").data("id");
-        $("#desa").html('<option value="">-- Pilih Desa --</option>');
-        if (kabId) {
-            $.get("/api/districts/" + kabId, function (data) {
-                $.each(data, function (i, val) {
-                    $("#desa").append(
-                        '<option value="' +
-                            val.name +
-                            '" data-id="' +
-                            val.id +
-                            '">' +
-                            val.name +
-                            "</option>"
-                    );
-                });
-            });
-        }
-    });
-
-    // =========================
-    // EDIT DATA
-    // =========================
-    $(document).on("click", ".btn-edit", function () {
-        let id = $(this).data("id");
-        $.get("/people/" + id, function (data) {
-            let provName = data.provinsi;
-            let kabName = data.kabupaten;
-            let desaName = data.desa;
-
-            // isi field biasa dulu
-            // isi field biasa dulu
-            let hobiArr = data.hobi ? data.hobi.split(",") : [];
-            let formHtml = `
-            <input type="hidden" name="id" value="${data.id}">
-            <div class="row g-3">
-                <div class="col-md-6">
-                <div class="form-floating">
-                    <input type="text" class="form-control" name="nama" id="editNama" value="${
-                        data.nama
-                    }" placeholder="Nama">
-                    <label for="editNama">Nama</label>
-                </div>
-                </div>
-                <div class="col-md-6">
-                <div class="form-floating">
-                    <input type="date" class="form-control" name="tgl_lahir" id="editTgl" value="${
-                        data.tgl_lahir ?? ""
-                    }" placeholder="Tanggal Lahir">
-                    <label for="editTgl">Tanggal Lahir</label>
-                </div>
-                </div>
-                <div class="col-md-6">
-                <div class="form-floating">
-                    <select class="form-select" name="agama" id="editAgama">
-                    <option ${
-                        data.agama == "Islam" ? "selected" : ""
-                    }>Islam</option>
-                    <option ${
-                        data.agama == "Kristen" ? "selected" : ""
-                    }>Kristen</option>
-                    <option ${
-                        data.agama == "Katolik" ? "selected" : ""
-                    }>Katolik</option>
-                    <option ${
-                        data.agama == "Hindu" ? "selected" : ""
-                    }>Hindu</option>
-                    <option ${
-                        data.agama == "Buddha" ? "selected" : ""
-                    }>Buddha</option>
-                    <option ${
-                        data.agama == "Konghucu" ? "selected" : ""
-                    }>Konghucu</option>
-                    </select>
-                    <label for="editAgama">Agama</label>
-                </div>
-                </div>
-
-                <!-- Floating labels untuk Provinsi, Kabupaten, Desa -->
-                <div class="col-md-6">
-                <div class="form-floating">
-                    <select class="form-select" name="provinsi" id="editProvinsi"></select>
-                    <label for="editProvinsi">Provinsi</label>
-                </div>
-                </div>
-                <div class="col-md-6">
-                <div class="form-floating">
-                    <select class="form-select" name="kabupaten" id="editKabupaten"></select>
-                    <label for="editKabupaten">Kabupaten</label>
-                </div>
-                </div>
-                <div class="col-md-6">
-                <div class="form-floating">
-                    <select class="form-select" name="desa" id="editDesa"></select>
-                    <label for="editDesa">Desa</label>
-                </div>
-                </div>
-
-                <div class="col-md-12">
-                <label class="form-label d-block">Hobi</label>
-                <div class="form-check form-check-inline">
-                    <input type="checkbox" class="form-check-input" name="hobi[]" value="Membaca" ${
-                        hobiArr.includes("Membaca") ? "checked" : ""
-                    }>
-                    <label class="form-check-label">Membaca</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input type="checkbox" class="form-check-input" name="hobi[]" value="Olahraga" ${
-                        hobiArr.includes("Olahraga") ? "checked" : ""
-                    }>
-                    <label class="form-check-label">Olahraga</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input type="checkbox" class="form-check-input" name="hobi[]" value="Musik" ${
-                        hobiArr.includes("Musik") ? "checked" : ""
-                    }>
-                    <label class="form-check-label">Musik</label>
-                </div>
-                </div>
-
-                <div class="col-md-12">
-                <label class="form-label d-block">Status Pernikahan</label>
-                <div class="form-check form-check-inline">
-                    <input type="radio" class="form-check-input" name="status" value="Menikah" ${
-                        data.status == "Menikah" ? "checked" : ""
-                    }>
-                    <label class="form-check-label">Menikah</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input type="radio" class="form-check-input" name="status" value="Belum Menikah" ${
-                        data.status == "Belum Menikah" ? "checked" : ""
-                    }>
-                    <label class="form-check-label">Belum Menikah</label>
-                </div>
-                </div>
-
-                <div class="col-md-6">
-                <div class="form-floating">
-                    <input type="file" class="form-control" name="image" id="editImage" placeholder="Upload Image">
-                    <label for="editImage">Upload Image (baru)</label>
-                </div>
-                ${
-                    data.image
-                        ? `<img src="/storage/${data.image}" width="80" class="mt-2 rounded shadow-sm">`
-                        : ""
-                }
-                </div>
-                <div class="col-md-6">
-                <div class="form-floating">
-                    <input type="file" class="form-control" name="files[]" id="editFiles" multiple placeholder="Upload Files">
-                    <label for="editFiles">Upload Files</label>
-                </div>
-                </div>
-            </div>
-            `;
-
-            $("#editBody").html(formHtml);
-            $("#modalEdit").modal("show");
-
-            // Load provinsi lalu pilih yang sesuai
-            // Load Provinsi
-            $.get(
-                "https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json",
-                function (provinsi) {
-                    $("#editProvinsi").empty();
-                    provinsi.forEach(function (p) {
-                        let selected =
-                            p.name.toLowerCase() === provName.toLowerCase()
-                                ? "selected"
-                                : "";
-                        $("#editProvinsi").append(
-                            `<option value="${p.name}" data-id="${p.id}" ${selected}>${p.name}</option>`
-                        );
-                    });
-
-                    // Cari ID provinsi dari nama
-                    let provId = $("#editProvinsi option:selected").data("id");
-
-                    // Load Kabupaten sesuai provinsi
-                    $.get(
-                        `https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${provId}.json`,
-                        function (kabupaten) {
-                            $("#editKabupaten").empty();
-                            kabupaten.forEach(function (k) {
-                                let selected =
-                                    k.name.toLowerCase() ===
-                                    kabName.toLowerCase()
-                                        ? "selected"
-                                        : "";
-                                $("#editKabupaten").append(
-                                    `<option value="${k.name}" data-id="${k.id}" ${selected}>${k.name}</option>`
-                                );
-                            });
-
-                            // Cari ID kabupaten dari nama
-                            let kabId = $(
-                                "#editKabupaten option:selected"
-                            ).data("id");
-
-                            // Load Desa sesuai kabupaten
-                            $.get(
-                                `https://www.emsifa.com/api-wilayah-indonesia/api/districts/${kabId}.json`,
-                                function (desa) {
-                                    $("#editDesa").empty();
-                                    desa.forEach(function (d) {
-                                        let selected =
-                                            d.name.toLowerCase() ===
-                                            desaName.toLowerCase()
-                                                ? "selected"
-                                                : "";
-                                        $("#editDesa").append(
-                                            `<option value="${d.name}" data-id="${d.id}" ${selected}>${d.name}</option>`
-                                        );
-                                    });
-                                }
-                            );
-                        }
-                    );
-                }
-            );
-
-            $("#modalEdit").modal("show");
-        });
-    });
-
-    // Event kalau user ganti provinsi
-    $(document).on("change", "#editProvinsi", function () {
-        let provId = $("#editProvinsi option:selected").data("id");
-        $("#editKabupaten").empty();
-        $("#editDesa").empty();
-
-        $.get(
-            `https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${provId}.json`,
-            function (kabupaten) {
-                kabupaten.forEach(function (k) {
-                    $("#editKabupaten").append(
-                        `<option value="${k.name}" data-id="${k.id}">${k.name}</option>`
-                    );
-                });
-
-                // otomatis load desa kabupaten pertama
-                let firstKabId = $("#editKabupaten option:first").data("id");
-                loadDesaByKab(firstKabId, "#editDesa");
-            }
-        );
-    });
-
-    // Event kalau user ganti kabupaten
-    $(document).on("change", "#editKabupaten", function () {
-        let kabId = $("#editKabupaten option:selected").data("id");
-        $("#editDesa").empty();
-        loadDesaByKab(kabId, "#editDesa");
-    });
-
-    // Fungsi bantu load desa
-    function loadDesaByKab(kabId, targetSelect) {
-        $.get(
-            `https://www.emsifa.com/api-wilayah-indonesia/api/districts/${kabId}.json`,
-            function (desa) {
-                $(targetSelect).empty();
-                desa.forEach(function (d) {
-                    $(targetSelect).append(
-                        `<option value="${d.name}" data-id="${d.id}">${d.name}</option>`
-                    );
-                });
-            }
-        );
-    }
-
-    // =========================
-    // UPDATE DATA
-    // =========================
-    $("#formEdit").submit(function (e) {
+    // Validasi & Submit
+    form.on("submit", function (e) {
         e.preventDefault();
-        let id = $("#formEdit input[name=id]").val();
-        let formData = new FormData(this);
+
+        const id = $("#person_id").val();
+        const nama = form.find("input[name='nama']").val().trim();
+        const image = form.find("input[name='image']")[0]?.files[0];
+        const files = form.find("input[name='files[]']")[0]?.files; // multiple file input
+
+        // Validasi nama
+        if (!nama) {
+            showToast("⚠️ Nama wajib diisi!", "warning");
+            return false;
+        }
+        if (nama.length > 50) {
+            showToast("⚠️ Nama maksimal 50 karakter!", "warning");
+            return false;
+        }
+
+        // Validasi file gambar
+        if (image) {
+            const validImageTypes = ["image/jpeg", "image/png", "image/jpg", "image/gif"];
+            if (!validImageTypes.includes(image.type)) {
+                showToast("⚠️ Hanya boleh mengunggah gambar (JPG, PNG, GIF)!", "warning");
+                return false;
+            }
+            if (image.size > 1024 * 1024) {
+                showToast("⚠️ Ukuran gambar maksimal 1 MB!", "warning");
+                return false;
+            }
+        }
+
+        // Validasi file dokumen
+        if (files && files.length > 0) {
+            const validDocTypes = [
+                "application/pdf",
+                "application/msword",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "application/vnd.ms-excel",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "application/zip",
+                "text/plain",
+            ];
+
+            for (const file of files) {
+                if (!validDocTypes.includes(file.type)) {
+                    showToast(`⚠️ File "${file.name}" tidak diperbolehkan!`, "warning");
+                    return false;
+                }
+                if (file.size > 1024 * 1024) {
+                    showToast(`⚠️ Ukuran file "${file.name}" maksimal 1 MB!`, "warning");
+                    return false;
+                }
+            }
+        }
+
+        // Kirim ke server
+        const formData = new FormData(this);
+        const url = id ? `/person/${id}` : "/person";
+        if (id) formData.append("_method", "PUT");
 
         $.ajax({
-            url: "/people/" + id,
-            type: "POST",
+            url,
+            method: "POST", // Laravel otomatis handle PUT dari _method
             data: formData,
-            contentType: false,
             processData: false,
+            contentType: false,
             success: function () {
-                $("#modalEdit").modal("hide");
+                modal.hide();
                 loadData();
-                showAlert("Data berhasil diperbarui!", "success");
+                showToast("✅ Data berhasil disimpan!", "success");
             },
-            error: function () {
-                showAlert("Gagal mengupdate data!", "danger");
+            error: function (xhr) {
+                console.error(xhr.responseText);
+                showToast("❌ Terjadi kesalahan pada server!", "danger");
             },
         });
     });
 
-    // =========================
-    // DELETE DATA
-    // =========================
-    $(document).on("click", ".btn-delete", function () {
-        if (!confirm("Yakin hapus data ini?")) return;
-        let id = $(this).data("id");
+    // Edit Data
+    $(document).on("click", ".editBtn", function () {
+        const id = $(this).data("id");
+        $.get(`/person/${id}/edit`, function (res) {
+            const p = res.data;
+            $("#modalTitle").text("Edit Data");
+            $("#person_id").val(p.id);
+            form.find("input[name='nama']").val(p.nama);
+            form.find("input[name='tgl_lahir']").val(p.tgl_lahir);
+            form.find("select[name='agama']").val(p.agama);
+
+            loadProvinsi(p.provinsi, () => {
+                loadKabupaten(p.provinsi, p.kabupaten, () => {
+                    loadDesa(p.kabupaten, p.desa);
+                });
+            });
+
+            form.find("input[name='hobi[]']").prop("checked", false);
+            if (p.hobi) {
+                p.hobi.split(",").forEach((h) => {
+                    form.find(`input[name='hobi[]'][value='${h.trim()}']`).prop("checked", true);
+                });
+            }
+
+            form.find("input[name='status'][value='" + p.status + "']").prop("checked", true);
+
+            modal.show();
+        });
+    });
+
+    // Hapus Data
+    let deleteId = null;
+
+    $(document).on("click", ".deleteBtn", function () {
+        deleteId = $(this).data("id");
+        $("#confirmToast").addClass("show");
+    });
+
+    $("#confirmYes").on("click", function () {
+        if (!deleteId) return;
+
         $.ajax({
-            url: "/people/" + id,
-            type: "DELETE",
-            data: { _token: $('meta[name="csrf-token"]').attr("content") },
+            url: `/person/${deleteId}`,
+            method: "POST",
+            data: {
+                _method: "DELETE",
+                _token: $('meta[name="csrf-token"]').attr("content"),
+            },
             success: function () {
                 loadData();
-                showAlert("Data berhasil dihapus!", "success");
+                showToast("🗑️ Data berhasil dihapus!", "warning");
             },
             error: function () {
-                showAlert("Gagal menghapus data!", "danger");
+                showToast("❌ Gagal menghapus data!", "danger");
+            },
+            complete: function () {
+                $("#confirmToast").removeClass("show");
+                deleteId = null;
             },
         });
     });
 
-    // ========================
-    // SHOW ALERT
-    // ========================
-    function showAlert(message, type = "success") {
-        let alertHtml = `
-            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        `;
-        $("#alertPlaceholder").html(alertHtml);
+    $("#confirmNo").on("click", function () {
+        $("#confirmToast").removeClass("show");
+        deleteId = null;
+    });
 
-        // otomatis hilang setelah 3 detik
-        setTimeout(() => {
-            $(".alert").alert("close");
-        }, 3000);
-    }
 });

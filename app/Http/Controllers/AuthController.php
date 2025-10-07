@@ -9,46 +9,55 @@ use App\Models\User;
 
 class AuthController extends Controller
 {
-    // Register User
     public function register(Request $request)
     {
         $request->validate([
-            'name' => 'required|max:100',
+            'name' => 'required|string|max:50',
             'email' => 'required|email|unique:users',
-            'password' => 'required|min:6'
+            'password' => 'required|min:6|confirmed',
+        ], [
+            'name.max' => 'Nama maksimal 50 karakter!',
+            'password.min' => 'Password minimal 6 karakter!',
         ]);
 
         User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password)
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'password' => Hash::make($request->password), 
         ]);
 
-        return redirect('/login')->with('success', 'Registrasi berhasil! Silakan login.');
+        return redirect()->route('login')->with('success', 'Registrasi berhasil! Silakan login.');
     }
 
-    // Login User
+
+    public function checkEmail(Request $request)
+    {
+        $emailExists = User::where('email', $request->email)->exists();
+
+        return response()->json(['exists' => $emailExists]);
+    }
+
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'email'    => 'required|email',
             'password' => 'required'
         ]);
 
         if (Auth::attempt($request->only('email', 'password'))) {
             $request->session()->regenerate();
-            return redirect('/dashboard');
+            return redirect('/dashboard')->with('success', 'Login berhasil!');
         }
 
         return back()->with('error', 'Email atau password salah!');
     }
 
-    // Logout User
     public function logout(Request $request)
     {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        Auth::logout();                          
+        $request->session()->invalidate();        
+        $request->session()->regenerateToken();   
+
         return redirect('/login');
     }
 }

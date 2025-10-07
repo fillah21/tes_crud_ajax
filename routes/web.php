@@ -5,6 +5,7 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PersonController;
 use Illuminate\Support\Facades\Http;
+use App\Http\Controllers\ProfileController;
 
 Route::get('/', function () {
     return redirect('/dashboard');
@@ -22,14 +23,12 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [PageController::class, 'dashboard']);
     Route::get('/crud', [PageController::class, 'crud']);
-
-    Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
-    Route::get('/people', [PersonController::class, 'index']);
-    Route::get('/people/{id}', [PersonController::class, 'show']);
-    Route::post('/people/{id}', [PersonController::class, 'update']);
-    Route::delete('/people/{id}', [PersonController::class, 'destroy']);
+    Route::resource('person', PersonController::class);
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 });
 
 Route::middleware('guest')->group(function () {
@@ -38,9 +37,9 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/register', [PageController::class, 'register'])->name('register');
     Route::post('/register', [AuthController::class, 'register'])->name('register.post');
-});
 
-Route::post('/people', [PersonController::class, 'store']);
+    Route::post('/check-email', [App\Http\Controllers\AuthController::class, 'checkEmail'])->name('check.email');
+});
 
 // Ambil provinsi
 Route::get('/api/provinces', function() {

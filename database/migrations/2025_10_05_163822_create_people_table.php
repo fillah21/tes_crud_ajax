@@ -19,10 +19,10 @@ return new class extends Migration
             $table->string('provinsi')->nullable();
             $table->string('kabupaten')->nullable();
             $table->string('desa')->nullable();
-            $table->string('hobi')->nullable(); // simpan array jadi string
+            $table->string('hobi')->nullable(); 
             $table->string('status')->nullable();
-            $table->string('image')->nullable(); // simpan path gambar
-            $table->text('files')->nullable();   // simpan path multi file JSON
+            $table->string('image')->nullable();
+            $table->text('files')->nullable();
             $table->timestamps();
         });
     }
